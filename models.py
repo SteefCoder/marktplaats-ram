@@ -64,7 +64,7 @@ class FilterPriceModel(Base):
 
 class FilterModel(Base):
     price: FilterPriceModel | None = None
-    post_code: str | None
+    post_code: str | None = None
     distance: int | None = None
 
 
