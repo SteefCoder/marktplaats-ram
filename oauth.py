@@ -14,7 +14,6 @@ assert CLIENT_ID is not None and CLIENT_SECRET is not None
 TOKEN_ENDPOINT = "https://auth.demo.qa-mp.so/accounts/oauth/token"
 
 
-
 def oauth_get_token(code: str):
     data = {
         'grant_type': 'authorization_code',
@@ -51,7 +50,6 @@ def oauth_refresh_token():
     token_info = response.json()
 
     expires = datetime.now() + timedelta(seconds=token_info['expires_in'])
-
 
     return {
         'access_token': token_info['access_token'],
