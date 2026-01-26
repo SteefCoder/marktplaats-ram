@@ -1,5 +1,6 @@
 import datetime
 import json
+import pathlib
 import sched
 
 from listings import get_and_parse_listings
@@ -8,10 +9,14 @@ from listings import get_and_parse_listings
 # every hour or so, do get_and_parse_listings
 # then, check for changes.
 
-listings_path = 'downloads/listings.json'
+listings_path = pathlib.Path('downloads/listings.json').resolve()
 
 
 def load_listings() -> tuple[list[dict], list[dict]]:
+    if not listings_path.exists():
+        write_listings([], [])
+        return [], []
+
     listings = json.load(open(listings_path))
     return listings['active'], listings['reserved']
 
