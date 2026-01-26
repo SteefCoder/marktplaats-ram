@@ -85,6 +85,7 @@ def schedule_update(scheduler: sched.scheduler):
 def main():
     scheduler = sched.scheduler()
     schedule_update(scheduler)
+    scheduler.run()
 
 
 if __name__ == '__main__':
