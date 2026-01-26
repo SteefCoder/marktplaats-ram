@@ -47,12 +47,14 @@ def update_listings():
                 active_listing = remove_listing(active, listing['id'])
                 active_listing['reserved at'] = now_iso()
                 reserved.append(active_listing)
+                print(f"Active item {listing['id']} was reserved.")
             elif listing['id'] in reserved_ids:
                 pass
             else:
                 listing['listed at'] = now_iso()
                 listing['reserved at'] = now_iso()
                 reserved.append(listing)
+                print(f"New item {listing['id']} was added and immediatly reserved.")
         else:
             if listing['id'] in active_ids:
                 pass
@@ -61,7 +63,9 @@ def update_listings():
                 if 'relisted at' not in reserved_listing:
                     reserved_listing['relisted at'] = []
                 reserved_listing['relisted at'].append(now_iso())
+                print(f"Reserved item {listing['id']} was relisted.")
             else:
+                print(f"Active item {listing['id']} was added.")
                 listing['listed at'] = now_iso()
                 active.append(listing)
 
