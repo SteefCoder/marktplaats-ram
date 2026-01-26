@@ -1,5 +1,6 @@
 import datetime
 import json
+import sched
 
 from listings import get_and_parse_listings
 
@@ -33,7 +34,7 @@ def remove_listing(listings: list[dict], id: int):
     return item
 
 
-def main():
+def update_listings():
     new_listings = get_and_parse_listings()
     active, reserved = load_listings()
 
@@ -65,6 +66,16 @@ def main():
                 active.append(listing)
 
     write_listings(active, reserved)
+
+
+def schedule_update(scheduler: sched.scheduler):
+    update_listings()
+    scheduler.enter(3600, 1, schedule_update, argument=(scheduler,))
+
+
+def main():
+    scheduler = sched.scheduler()
+    schedule_update(scheduler)
 
 
 if __name__ == '__main__':
