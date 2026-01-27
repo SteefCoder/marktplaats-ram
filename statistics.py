@@ -20,8 +20,13 @@ def load_listings() -> tuple[list[dict], list[dict]]:
 
 
 def print_time_hist(data: list[float], name: str):
-    values, edges = np.histogram(data)
+    bin_width = 3600
 
+    start_hour = datetime.datetime.fromtimestamp(min(data)).replace(microsecond=0, second=0, minute=0)
+    start = start_hour.timestamp()
+
+    values, edges = np.histogram(data, bins=np.arange(start, max(data) + bin_width, bin_width))
+    
     print(f"----- Histogram {name} -----")
     for i, v in enumerate(values):
         print(f"{to_strftime(edges[i])} - {to_strftime(edges[i + 1])}: {v}")
