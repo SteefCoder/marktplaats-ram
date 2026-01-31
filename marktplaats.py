@@ -1,4 +1,5 @@
 from enum import Enum
+import time
 
 import requests
 
@@ -30,8 +31,6 @@ def get_ram_listing_page(since: OfferedSince, page: int, limit: int = 100) -> li
     }
 
     response = requests.get(url, params, headers=headers)
-    print(response.headers)
-    print(response.content)
     response.raise_for_status()
     return response.json()['listings']
 
@@ -64,12 +63,20 @@ def parse_ram_listing(listing: dict) -> dict:
     }
 
 
-def get_ram_listings(since: OfferedSince, max_pages: int = 10, page_limit: int = 150) -> list[dict]:
+def get_ram_listings(
+    since: OfferedSince,
+    max_pages: int = 10,
+    page_limit: int = 100,
+    delay: float = 0
+) -> list[dict]:
     listings = []
     for page_n in range(max_pages):
         page = get_ram_listing_page(since, page_n, page_limit)
         listings += [parse_ram_listing(l) for l in page]
         if len(page) < page_limit:
             break
+        
+        if delay:
+            time.sleep(delay)
     
     return listings
