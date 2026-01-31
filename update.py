@@ -32,26 +32,42 @@ def offered_since_to_date(since: OfferedSince) -> datetime.date:
         return date_days_ago(1000)
 
 
-def to_date_iso(date: str) -> str:
-    if date == 'Vandaag':
-        return datetime.date.today().isoformat()
-    elif date == 'Gisteren':
-        return date_days_ago(1).isoformat()
-    elif date == 'Eergisteren':
-        return date_days_ago(2).isoformat()
+def get_absolute_date(rel_date: str) -> datetime.date:
+    if rel_date == 'Vandaag':
+        return datetime.date.today()
+    elif rel_date == 'Gisteren':
+        return date_days_ago(1)
+    elif rel_date == 'Eergisteren':
+        return date_days_ago(2)
     else:
-        dt = datetime.datetime.strptime(date, '%d %b %y')
-        return dt.date().isoformat()
+        dt = datetime.datetime.strptime(rel_date, '%d %b %y')
+        return dt.date()
 
 
 def get_ram_listing_infos(since: OfferedSince) -> dict[str, dict]:
     get_text = lambda l: l['title'] + '\n' + l['description']
 
-    return {
-        x['item_id']: x | extract_ram_info(get_text(x)) |
-            {'listed_at': now_iso(), 'date': to_date_iso(x['date'])}
-        for x in get_ram_listings(since, max_pages=100, delay=3)
-    }
+    results = {}
+    for l in get_ram_listings(since, max_pages=100, delay=3):
+        x = l | extract_ram_info(get_text(l))
+
+        # this is only for 
+        if x['date'] == 'Vandaag':
+            x['listed_at'] = now_iso()
+            x['date'] = get_absolute_date(x['date']).isoformat()
+        else:
+            date = get_absolute_date(x['date'])
+
+            # hour=18 is just an arbitrairy choice
+            # we don't know at what time in the day it was listed.
+            x['listed_at'] = datetime.datetime(
+                year=date.year, month=date.month, day=date.day, hour=18
+            ).isoformat()
+            x['date'] = date.isoformat()
+
+        results[x['item_id']] = x
+        
+    return results
 
 
 def load_listings() -> dict[str, dict]:
@@ -126,6 +142,14 @@ def update_listings(since: OfferedSince) -> None:
 
         # check if the listing is before the since date
         if since != OfferedSince.ALL_TIME and date < offered_since_to_date(since):
+            continue
+        
+        # Because of a bug in the Marktplaats api
+        # some listings show up as being listed today,
+        # but are only found when OfferedSince is yesterday.
+        # To prevent needless relisting, we only mark these when checking
+        # yesterday or earlier.
+        if since == OfferedSince.TODAY:
             continue
         
         # either taken down or reserved, but we will assume
