@@ -18,15 +18,17 @@ logging.Formatter.converter = lambda *args: dates.now().timetuple()
 
 # tuples with how many days back we want to get the listings
 # and in how many hours we want to check for that
-# since yesterday - every hour
-# since the last week - every 12 hours (0.5 days)
-# since the last month - every 36 hours (1.5 days)
-# since the last year - every 72 hours (3 days)
+# since today - every 2 hours
+# since yesterday - every 4 hours
+# since the last week - every day
+# since the last month - every 2 days
+# since the last year - every 4 days
 UPDATE_INTERVAL_HOURS = [
-    (timedelta(days=1), 1),
-    (timedelta(days=7), 12),
-    (timedelta(days=30), 36),
-    (timedelta(days=365), 72)
+    (timedelta(days=0), 2),
+    (timedelta(days=1), 4),
+    (timedelta(days=7), 24),
+    (timedelta(days=30), 48),
+    (timedelta(days=365), 96)
 ]
 
 
