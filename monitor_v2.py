@@ -1,6 +1,10 @@
 import sched
 import logging
 
+import dates
+from offered_since import OfferedSince
+from update import update_listings
+
 logging.basicConfig(
     format="[%(asctime)s] %(levelname)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
@@ -10,10 +14,7 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
-
-import dates
-from offered_since import OfferedSince
-from update import update_listings
+logging.Formatter.converter = lambda *args: dates.now().timetuple()
 
 UPDATE_INTERVAL_HOURS = {
     OfferedSince.TODAY: 1,
