@@ -1,4 +1,4 @@
-from datetime import timedelta, date, time
+from datetime import timedelta, date
 import sched
 import logging
 
@@ -36,8 +36,8 @@ def get_update_since() -> date | None:
     now = dates.now()
     curr_hour = now.day * 24 + now.hour
 
-    if now.time() > time(hour=22) or now.time() < time(hour=8):
-        update_hours = [(timedelta(days=1), 4)] + UPDATE_INTERVAL_HOURS[2:]
+    if now.hour > 22 or now.hour < 6:
+        update_hours = UPDATE_INTERVAL_HOURS[2:]
     else:
         update_hours = UPDATE_INTERVAL_HOURS
 
