@@ -1,4 +1,4 @@
-from datetime import timedelta, date
+from datetime import timedelta, date, time
 import sched
 import logging
 
@@ -24,8 +24,8 @@ logging.Formatter.converter = lambda *args: dates.now().timetuple()
 # since the last month - every 2 days
 # since the last year - every 4 days
 UPDATE_INTERVAL_HOURS = [
-    (timedelta(days=0), 2),
-    (timedelta(days=1), 4),
+    (timedelta(days=0), 1),
+    (timedelta(days=1), 3),
     (timedelta(days=7), 24),
     (timedelta(days=30), 48),
     (timedelta(days=365), 96)
@@ -36,7 +36,12 @@ def get_update_since() -> date | None:
     now = dates.now()
     curr_hour = now.day * 24 + now.hour
 
-    for time_back, hour_interval in UPDATE_INTERVAL_HOURS[::-1]:
+    if now.time() > time(hour=22) or now.time() < time(hour=8):
+        update_hours = [(timedelta(days=1), 4)] + UPDATE_INTERVAL_HOURS[2:]
+    else:
+        update_hours = UPDATE_INTERVAL_HOURS
+
+    for time_back, hour_interval in update_hours[::-1]:
         if curr_hour % hour_interval == 0:
             return (now - time_back).date()
 
