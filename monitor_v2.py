@@ -1,4 +1,3 @@
-import datetime
 import sched
 import logging
 
@@ -12,7 +11,8 @@ logging.basicConfig(
     ]
 )
 
-from marktplaats import OfferedSince
+import dates
+from offered_since import OfferedSince
 from update import update_listings
 
 UPDATE_INTERVAL_HOURS = {
@@ -35,9 +35,8 @@ def get_update_type(hour_count: int) -> OfferedSince | None:
 
 
 def schedule_next_update(scheduler: sched.scheduler) -> None:
-    now = datetime.datetime.now()
-    new_hour = now.replace(minute=0, second=0, microsecond=0) + datetime.timedelta(hours=1)
-    wait = (new_hour - now).total_seconds()
+    new_hour = dates.next_hour()
+    wait = (new_hour - dates.now()).total_seconds()
     logging.info(f"Scheduling next update at {new_hour}.")
     scheduler.enter(wait, 1, execute_update, (scheduler,))
 
@@ -45,12 +44,13 @@ def schedule_next_update(scheduler: sched.scheduler) -> None:
 def execute_update(scheduler: sched.scheduler):
     logging.info("Start of scheduled update.")
 
-    now = datetime.datetime.now()
+    now = dates.now()
     hour = now.day * 24 + now.hour
     since = get_update_type(hour)
     if since:
         update_listings(since)
 
+    logging.info(f"Update done. [{(dates.now() - now).total_seconds()} sec]")
     schedule_next_update(scheduler)
 
 

@@ -1,14 +1,8 @@
-from enum import Enum
 import time
 
 import requests
 
-
-class OfferedSince(Enum):
-    TODAY = "Vandaag"
-    YESTERDAY = "Gisteren"
-    PAST_WEEK = "Een week"
-    ALL_TIME = "Altijd"
+from offered_since import OfferedSince
 
 
 def get_ram_listing_page(since: OfferedSince, page: int, limit: int = 100) -> list[dict]:
