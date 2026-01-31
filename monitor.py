@@ -1,0 +1,68 @@
+from datetime import timedelta, date
+import sched
+import logging
+
+import dates
+from update import update_listings
+
+logging.basicConfig(
+    format="[%(asctime)s] %(levelname)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO,
+    handlers=[
+        logging.FileHandler("monitor.log", encoding="utf8"),
+        logging.StreamHandler()
+    ]
+)
+logging.Formatter.converter = lambda *args: dates.now().timetuple()
+
+# tuples with how many days back we want to get the listings
+# and in how many hours we want to check for that
+# since yesterday - every hour
+# since the last week - every 12 hours (0.5 days)
+# since the last month - every 36 hours (1.5 days)
+# since the last year - every 72 hours (3 days)
+UPDATE_INTERVAL_HOURS = [
+    (timedelta(days=1), 1),
+    (timedelta(days=7), 12),
+    (timedelta(days=30), 36),
+    (timedelta(days=365), 72)
+]
+
+
+def get_update_since() -> date | None:
+    now = dates.now()
+    curr_hour = now.day * 24 + now.hour
+
+    for time_back, hour_interval in UPDATE_INTERVAL_HOURS[::-1]:
+        if curr_hour % hour_interval == 0:
+            return (now - time_back).date()
+
+
+def schedule_next_update(scheduler: sched.scheduler) -> None:
+    new_hour = dates.next_hour()
+    # add 5 seconds to ensure the hour is passed
+    # essential for other parts of code
+    wait = (new_hour - dates.now()).total_seconds() + 5
+    logging.info(f"Scheduled next update at {new_hour}.")
+    scheduler.enter(wait, 1, execute_update, (scheduler,))
+
+
+def execute_update(scheduler: sched.scheduler):
+    logging.info("Start of scheduled update.")
+
+    since = get_update_since()
+    if since:
+        update_listings(since)
+
+    schedule_next_update(scheduler)
+
+
+def main():
+    scheduler = sched.scheduler()
+    schedule_next_update(scheduler)
+    scheduler.run()
+
+
+if __name__ == '__main__':
+    main()

@@ -5,37 +5,19 @@ import logging
 
 import dates
 from extract import extract_ram_info
-from marktplaats import get_ram_listings, OfferedSince
+from marktplaats import get_ram_listings
 
 logger = logging.getLogger(__name__)
 
 listings_path = pathlib.Path('downloads/listings_v2.json').resolve()
 
 
-def get_ram_listing_infos(since: OfferedSince) -> dict[str, dict]:
+def get_ram_listing_infos(since: datetime.date) -> dict[str, dict]:
     get_text = lambda l: l['title'] + '\n' + l['description']
-
-    results = {}
-    for l in get_ram_listings(since, max_pages=100, delay=3):
-        x = l | extract_ram_info(get_text(l))
-
-        # this is only for 
-        if x['date'] == 'Vandaag':
-            x['listed_at'] = dates.now_iso()
-            x['date'] = dates.get_absolute_date(x['date']).isoformat()
-        else:
-            date = dates.get_absolute_date(x['date'])
-
-            # hour=18 is just an arbitrairy choice
-            # we don't know at what time in the day it was listed.
-            x['listed_at'] = datetime.datetime(
-                year=date.year, month=date.month, day=date.day, hour=18
-            ).isoformat()
-            x['date'] = date.isoformat()
-
-        results[x['item_id']] = x
-        
-    return results
+    return {
+        l['item_id']: l | extract_ram_info(get_text(l))
+        for l in get_ram_listings(since, max_pages=100, delay=3)
+    }
 
 
 def load_listings() -> dict[str, dict]:
@@ -52,8 +34,8 @@ def write_listings(listings: dict[str, dict]) -> None:
         json.dump({'listings': listings}, f, indent=2)
 
 
-def update_listings(since: OfferedSince) -> None:
-    logger.info("Updating listings since: %s", since.value)
+def update_listings(since: datetime.date) -> None:
+    logger.info("Updating listings since: %s", since)
     new_listings = get_ram_listing_infos(since)
     old_listings = load_listings()
 
@@ -107,24 +89,15 @@ def update_listings(since: OfferedSince) -> None:
     # there is no way to tell the last two apart.
     for id in old_ids - new_ids:
         date = datetime.date.fromisoformat(old_listings[id]['date'])
-
-        # check if the listing is before the since date
-        if since != OfferedSince.ALL_TIME and date < dates.offered_since_to_date(since):
-            continue
-        
-        # Because of a bug in the Marktplaats api
-        # some listings show up as being listed today,
-        # but are only found when OfferedSince is yesterday.
-        # To prevent needless relisting, we only mark these when checking
-        # yesterday or earlier.
-        if since == OfferedSince.TODAY:
+        if date < since:
             continue
         
         # either taken down or reserved, but we will assume
         # the post is reserved
-        old_listings[id]['reserved'] = True
-        old_listings[id]['reserved_at'] = dates.now_iso()
-        counts['reserved'] += 1
+        if not old_listings[id]['reserved']:
+            old_listings[id]['reserved'] = True
+            old_listings[id]['reserved_at'] = dates.now_iso()
+            counts['reserved'] += 1
     
     write_listings(old_listings)
 
