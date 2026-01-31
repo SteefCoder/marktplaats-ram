@@ -34,22 +34,29 @@ def get_update_type(hour_count: int) -> OfferedSince | None:
         return OfferedSince.TODAY
 
 
-def schedule_update(scheduler: sched.scheduler, hour_count: int):
+def schedule_next_update(scheduler: sched.scheduler) -> None:
+    now = datetime.datetime.now()
+    new_hour = now.replace(minute=0, second=0, microsecond=0) + datetime.timedelta(hours=1)
+    wait = (new_hour - now).total_seconds()
+    logging.info(f"Scheduling next update at {new_hour}.")
+    scheduler.enter(wait, 1, execute_update, (scheduler,))
+
+
+def execute_update(scheduler: sched.scheduler):
     logging.info("Start of scheduled update.")
 
-    since = get_update_type(hour_count)
+    now = datetime.datetime.now()
+    hour = now.day * 24 + now.hour
+    since = get_update_type(hour)
     if since:
         update_listings(since)
 
-    now = datetime.datetime.now()
-    new_hour = now.replace(minute=0, second=0, microsecond=0) + datetime.timedelta(hours=1)
-    logging.info(f"Update done. Scheduling next update at {new_hour}.")
-    scheduler.enter((new_hour - now).total_seconds(), 1, schedule_update, argument=(scheduler, hour_count + 1))
+    schedule_next_update(scheduler)
 
 
 def main():
     scheduler = sched.scheduler()
-    schedule_update(scheduler, datetime.datetime.now().hour)
+    schedule_next_update(scheduler)
     scheduler.run()
 
 
