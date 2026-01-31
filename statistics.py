@@ -4,7 +4,7 @@ import pathlib
 
 import numpy as np
 
-listings_path = pathlib.Path('downloads/listings.json').resolve()
+listings_path = pathlib.Path('downloads/listings_v2.json').resolve()
 
 
 def to_timestamp(isotime: str) -> float:
