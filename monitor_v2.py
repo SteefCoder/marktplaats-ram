@@ -17,7 +17,7 @@ from update import update_listings
 
 UPDATE_INTERVAL_HOURS = {
     OfferedSince.TODAY: 1,
-    OfferedSince.YESTERDAY: 2,
+    OfferedSince.YESTERDAY: 1,
     OfferedSince.PAST_WEEK: 12,
     OfferedSince.ALL_TIME: 48
 }
