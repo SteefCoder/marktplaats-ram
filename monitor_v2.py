@@ -23,17 +23,23 @@ UPDATE_INTERVAL_HOURS = {
 }
 
 
+def get_update_type(hour_count: int) -> OfferedSince | None:
+    if hour_count % UPDATE_INTERVAL_HOURS[OfferedSince.ALL_TIME] == 0:
+        return OfferedSince.ALL_TIME
+    elif hour_count % UPDATE_INTERVAL_HOURS[OfferedSince.PAST_WEEK] == 0:
+        return OfferedSince.PAST_WEEK
+    elif hour_count % UPDATE_INTERVAL_HOURS[OfferedSince.YESTERDAY] == 0:
+        return OfferedSince.YESTERDAY
+    elif hour_count % UPDATE_INTERVAL_HOURS[OfferedSince.TODAY] == 0:
+        return OfferedSince.TODAY
+
+
 def schedule_update(scheduler: sched.scheduler, hour_count: int):
     logging.info("Start of scheduled update.")
-    if hour_count % UPDATE_INTERVAL_HOURS[OfferedSince.ALL_TIME] == 0:
-        update_listings(OfferedSince.ALL_TIME)
-        hour_count = 0
-    elif hour_count % UPDATE_INTERVAL_HOURS[OfferedSince.PAST_WEEK] == 0:
-        update_listings(OfferedSince.PAST_WEEK)
-    elif hour_count % UPDATE_INTERVAL_HOURS[OfferedSince.YESTERDAY] == 0:
-        update_listings(OfferedSince.YESTERDAY)
-    elif hour_count % UPDATE_INTERVAL_HOURS[OfferedSince.TODAY] == 0:
-        update_listings(OfferedSince.TODAY)
+
+    since = get_update_type(hour_count)
+    if since:
+        update_listings(since)
 
     now = datetime.datetime.now()
     new_hour = now.replace(minute=0, second=0, microsecond=0) + datetime.timedelta(hours=1)
