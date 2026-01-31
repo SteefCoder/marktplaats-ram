@@ -13,26 +13,30 @@ def now_iso() -> str:
     return datetime.datetime.now().isoformat()
 
 
-def offered_since_to_date(since: OfferedSince) -> datetime.date:
+def date_days_ago(days_ago: int) -> datetime.date:
     today = datetime.date.today()
+    return today - datetime.timedelta(days=days_ago)
+
+
+def offered_since_to_date(since: OfferedSince) -> datetime.date:
     if since == OfferedSince.TODAY:
-        return today
+        return datetime.date.today()
     elif since == OfferedSince.YESTERDAY:
-        return today - datetime.timedelta(days=1)
+        return date_days_ago(1)
     elif since == OfferedSince.PAST_WEEK:
-        return today - datetime.timedelta(days=7)
+        return date_days_ago(7)
     elif since == OfferedSince.ALL_TIME:
         # not really possible to have a date here
-        return today - datetime.timedelta(days=1000)
+        return date_days_ago(1000)
 
 
 def to_date_iso(date: str) -> str:
     if date == 'Vandaag':
         return datetime.date.today().isoformat()
     elif date == 'Gisteren':
-        today = datetime.date.today()
-        yesterday = today - datetime.timedelta(days=1)
-        return yesterday.isoformat()
+        return date_days_ago(1).isoformat()
+    elif date == 'Eergisteren':
+        return date_days_ago(2).isoformat()
     else:
         dt = datetime.datetime.strptime(date, '%d %b %y')
         return dt.date().isoformat()
@@ -129,8 +133,10 @@ def update_listings(since: OfferedSince) -> None:
         counts['reserved'] += 1
     
     write_listings(old_listings)
+
     print("---- Summary ----")
-    print("Listed:\t", counts['listed'])
+    print("Total:\t\t", len(new_listings))
+    print("Listed:\t\t", counts['listed'])
     print("Reserved:\t", counts['reserved'])
     print("Relisted:\t", counts['relisted'])
     print("Done updating listings.")

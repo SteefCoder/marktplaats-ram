@@ -13,6 +13,7 @@ UPDATE_INTERVAL_HOURS = {
 
 
 def schedule_update(scheduler: sched.scheduler, hour_count: int):
+    print()
     print("Start of scheduled update at", datetime.datetime.now().time())
     if hour_count % UPDATE_INTERVAL_HOURS[OfferedSince.ALL_TIME] == 0:
         update_listings(OfferedSince.ALL_TIME)
@@ -27,12 +28,14 @@ def schedule_update(scheduler: sched.scheduler, hour_count: int):
     now = datetime.datetime.now()
     new_hour = now.replace(minute=0, second=0, microsecond=0) + datetime.timedelta(hours=1)
     print("Scheduling next update at", new_hour)
+    print()
     scheduler.enter((new_hour - now).total_seconds(), 1, schedule_update, argument=(scheduler, hour_count + 1))
 
 
 def main():
     scheduler = sched.scheduler()
-    schedule_update(scheduler, datetime.datetime.now().hour + 1)
+    schedule_update(scheduler, datetime.datetime.now().hour)
+    scheduler.run()
 
 
 if __name__ == '__main__':

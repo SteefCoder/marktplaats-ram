@@ -38,7 +38,7 @@ def get_ram_listing_page(since: OfferedSince, page: int, limit: int = 100) -> li
 def parse_ram_listing(listing: dict) -> dict:
     attributes = {
         x['key']: x['value']
-        for x in listing['attributes'] + listing['extendedAttributes']
+        for x in listing.get('attributes', []) + listing.get('extendedAttributes', [])
     }
 
     return {
@@ -75,7 +75,7 @@ def get_ram_listings(
         listings += [parse_ram_listing(l) for l in page]
         if len(page) < page_limit:
             break
-        
+
         if delay:
             time.sleep(delay)
     
