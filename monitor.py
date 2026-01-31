@@ -41,9 +41,7 @@ def get_update_since() -> date | None:
 
 def schedule_next_update(scheduler: sched.scheduler) -> None:
     new_hour = dates.next_hour()
-    # add 5 seconds to ensure the hour is passed
-    # essential for other parts of code
-    wait = (new_hour - dates.now()).total_seconds() + 5
+    wait = (new_hour - dates.now()).total_seconds()
     logging.info(f"Scheduled next update at {new_hour}.")
     scheduler.enter(wait, 1, execute_update, (scheduler,))
 
