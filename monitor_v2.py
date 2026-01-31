@@ -1,5 +1,16 @@
 import datetime
 import sched
+import logging
+
+logging.basicConfig(
+    format="[%(asctime)s] %(levelname)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO,
+    handlers=[
+        logging.FileHandler("monitor.log", encoding="utf8"),
+        logging.StreamHandler()
+    ]
+)
 
 from marktplaats import OfferedSince
 from update import update_listings
@@ -13,8 +24,7 @@ UPDATE_INTERVAL_HOURS = {
 
 
 def schedule_update(scheduler: sched.scheduler, hour_count: int):
-    print()
-    print("Start of scheduled update at", datetime.datetime.now().time())
+    logging.info("Start of scheduled update.")
     if hour_count % UPDATE_INTERVAL_HOURS[OfferedSince.ALL_TIME] == 0:
         update_listings(OfferedSince.ALL_TIME)
         hour_count = 0
@@ -27,8 +37,7 @@ def schedule_update(scheduler: sched.scheduler, hour_count: int):
 
     now = datetime.datetime.now()
     new_hour = now.replace(minute=0, second=0, microsecond=0) + datetime.timedelta(hours=1)
-    print("Scheduling next update at", new_hour)
-    print()
+    logging.info(f"Update done. Scheduling next update at {new_hour}.")
     scheduler.enter((new_hour - now).total_seconds(), 1, schedule_update, argument=(scheduler, hour_count + 1))
 
 

@@ -1,10 +1,12 @@
 import datetime
 import pathlib
 import json
+import logging
 
 from marktplaats import get_ram_listings, OfferedSince
 from extract import extract_ram_info
 
+logger = logging.getLogger(__name__)
 
 listings_path = pathlib.Path('downloads/listings_v2.json').resolve()
 
@@ -67,7 +69,7 @@ def write_listings(listings: dict[str, dict]) -> None:
 
 
 def update_listings(since: OfferedSince) -> None:
-    print("Updating listings since:", since.value)
+    logger.info("Updating listings since: %s", since.value)
     new_listings = get_ram_listing_infos(since)
     old_listings = load_listings()
 
@@ -134,9 +136,6 @@ def update_listings(since: OfferedSince) -> None:
     
     write_listings(old_listings)
 
-    print("---- Summary ----")
-    print("Total:\t\t", len(new_listings))
-    print("Listed:\t\t", counts['listed'])
-    print("Reserved:\t", counts['reserved'])
-    print("Relisted:\t", counts['relisted'])
-    print("Done updating listings.")
+    logger.info("Done updating listings.")
+    logger.info("Summary:\t %s total, %s listed, %s reserved, %s relisted.",
+                len(new_listings), counts['listed'], counts['reserved'], counts['relisted'])
