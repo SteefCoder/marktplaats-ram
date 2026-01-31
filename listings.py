@@ -4,14 +4,14 @@ import requests
 from extract import extract_ram_info
 
 
-def get_listing_page(offset: int):
+def get_listing_page(page: int, limit: int):
     url = "https://www.marktplaats.nl/lrp/api/search"
     params = {
         "attributesByKey[]": "offeredSince:Gisteren",
         "l1CategoryId": 322,
         "l2CategoryId": 331,
-        "limit": 100,
-        "offset": offset
+        "limit": limit,
+        "offset": limit * page
     }
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) Gecko/20100101 Firefox/147.0",
@@ -25,10 +25,11 @@ def get_listing_page(offset: int):
 
 def get_all_listings():
     results = []
+    limit = 150
     for i in range(10):
-        page = get_listing_page(100 * i)
+        page = get_listing_page(i, limit)
         results += page['listings']
-        if len(page['listings']) < 100:
+        if len(page['listings']) < limit:
             break
     return results
 

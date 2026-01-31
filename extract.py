@@ -141,11 +141,11 @@ def extract_ram_info(text: str):
     amount, size, total = extract_gb(text)
 
     return {
-        'type': ram_type,
-        'ddr gen': gen,
-        'speed (mt/s)': speed,
-        'latency (cycles)': latency,
+        'intended_for': ram_type,
+        'generation': gen,
+        'speed': speed,
+        'latency': latency,
         'sticks': amount,
-        'stick size (gb)': size,
-        'total (gb)': total
+        'stick_size': size,
+        'capacity': total
     }
