@@ -1,10 +1,14 @@
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 
 def cascade_all_eq(l: list):
     l = [x for x in l if x]
     if not all(x == l[0] for x in l):
         # print("oops, contradictory information", l)
+        logger.debug("Can't cascade correctly: contradictory information in %s.", l)
         return
     
     for x in l:
@@ -36,6 +40,7 @@ def infer_speed(gen: str, speed: int):
         return speed
     
     # print(f"I don't know speed {speed} for gen {gen}")
+    logger.debug("Speed %s was not found for generation %s.", speed, gen)
 
 
 def extract_gen_and_speed(text: str):
