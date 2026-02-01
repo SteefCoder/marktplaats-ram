@@ -20,11 +20,15 @@ logging.Formatter.converter = lambda *args: dates.now().timetuple()
 # and in how many hours we want to check for that
 # since today - never
 # since yesterday - every 2 hours
+# since 2 days ago - every 6 hours
 # since the last week - every day
 # since the last month - every 2 days
 # since the last year - every 4 days
+
+# just checking for today is unreliable and leads to relisting problems.
 UPDATE_INTERVAL_HOURS = [
     (timedelta(days=1), 2),
+    (timedelta(days=2), 6),
     (timedelta(days=7), 24),
     (timedelta(days=30), 48),
     (timedelta(days=365), 96)

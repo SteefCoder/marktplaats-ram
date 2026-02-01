@@ -89,7 +89,7 @@ def update_listings(since: datetime.date) -> None:
     # there is no way to tell the last two apart.
     for id in old_ids - new_ids:
         date = datetime.date.fromisoformat(old_listings[id]['date'])
-        if date < since:
+        if date <= since:
             continue
         
         # either taken down or reserved, but we will assume
