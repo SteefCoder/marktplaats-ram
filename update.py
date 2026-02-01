@@ -15,7 +15,7 @@ listings_path = pathlib.Path('downloads/listings_v2.json').resolve()
 def get_ram_listing_infos(since: datetime.date) -> dict[str, dict]:
     get_text = lambda l: l['title'] + '\n' + l['description']
     return {
-        l['item_id']: l | extract_ram_info(get_text(l))
+        l['item_id']: l | {'ram_info': extract_ram_info(get_text(l))}
         for l in get_ram_listings(since, max_pages=100, delay=15)
     }
 
