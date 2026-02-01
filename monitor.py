@@ -1,4 +1,4 @@
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 import sched
 import logging
 
@@ -35,31 +35,37 @@ UPDATE_INTERVAL_HOURS = [
 ]
 
 
-def get_update_since() -> date | None:
-    now = dates.now()
-    curr_hour = now.day * 24 + now.hour
+def get_update_type(time: datetime) -> date | None:
+    hour = time.day * 24 + time.hour
 
-    if now.hour > 22 or now.hour < 6:
+    if time.hour > 22 or time.hour < 6:
         update_hours = UPDATE_INTERVAL_HOURS[2:]
     else:
         update_hours = UPDATE_INTERVAL_HOURS
 
     for time_back, hour_interval in update_hours[::-1]:
-        if curr_hour % hour_interval == 0:
-            return (now - time_back).date()
+        if hour % hour_interval == 0:
+            return dates.today() - time_back
 
 
 def schedule_next_update(scheduler: sched.scheduler) -> None:
-    new_hour = dates.next_hour()
-    wait = (new_hour - dates.now()).total_seconds()
-    logging.info(f"Scheduled next update at {new_hour}.")
-    scheduler.enter(wait, 1, execute_update, (scheduler,))
+    now_hour = dates.now().replace(minute=0, second=0, microsecond=0) 
+    # check for the first update in the next month
+    for hour in range(1, 24 * 30):
+        t = now_hour + timedelta(hours=hour)
+        if get_update_type(t):
+            wait = (t - dates.now()).total_seconds()
+            logging.info(f"Scheduled next update at {t}.")
+            scheduler.enter(wait, 1, execute_update, (scheduler,))
+            return
+
+    logging.info("No schedulable updates found.")
 
 
 def execute_update(scheduler: sched.scheduler):
     logging.info("Start of scheduled update.")
 
-    since = get_update_since()
+    since = get_update_type(dates.now())
     if since:
         update_listings(since)
 
