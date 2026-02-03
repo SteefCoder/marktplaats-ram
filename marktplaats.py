@@ -1,10 +1,14 @@
 import datetime
 from enum import Enum
 import time
+import logging
 
 import requests
 
 import dates
+
+logger = logging.getLogger(__name__)
+
 
 class OfferedSince(Enum):
     TODAY = "Vandaag"
@@ -16,7 +20,7 @@ class OfferedSince(Enum):
 def get_ram_listing_page(since: OfferedSince, page: int, limit: int = 100) -> list[dict]:
     url = "https://www.marktplaats.nl/lrp/api/search"
     params = {
-        "attributesByKey[]": "offeredSince:" + since.value,
+        # "attributesByKey[]": "offeredSince:" + since.value,
         # "attributeRanges[]": ... # for price and stuff
         "sortBy": "SORT_INDEX",  # sort by date
         "sortOrder": "DECREASING",  # newest first
@@ -34,7 +38,13 @@ def get_ram_listing_page(since: OfferedSince, page: int, limit: int = 100) -> li
     }
 
     response = requests.get(url, params, headers=headers)
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as e:
+        logger.error("HTTPError occured: %s", e.args)
+        logger.error("Content: %s", e.response.content)
+        raise e
+
     return response.json()['listings']
 
 
